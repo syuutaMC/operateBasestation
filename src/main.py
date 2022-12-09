@@ -9,7 +9,8 @@ async def run():
     device_list = []
     for d in devices:
         devices_name = d.name
-        if str(devices_name) in "LHB*":
+        print(devices_name)
+        if "LHB" in str(devices_name):
             device_list.append(d)
 
     print(device_list)
