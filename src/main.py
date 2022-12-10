@@ -1,11 +1,21 @@
 import asyncio
+import configparser
+import os
+
 from bleak import BleakScanner
 from bleak import BleakClient
-from asyncio import *
 
-service = "00001525-1212-efde-1523-785feabcd124"
-class main():
-    async def scan(self, loop):
+
+class Main:
+    def __init__(self):
+        config = configparser.ConfigParser()
+        path = os.path.join(os.path.dirname(__file__), '..\config\config.ini')
+        print(path)
+        config.read(path)
+
+        self.service = config['BLE']['service']
+
+    async def scan(self):
         devices = await BleakScanner.discover(timeout=5.0)
         device_list = []
         for d in devices:
@@ -14,20 +24,29 @@ class main():
             if "LHB" in str(devices_name):
                 device_list.append(d)
 
-        await self.connect(device_list, loop)
+        return device_list
 
-    async def connect(self, device_list, loop):
+    async def connect(self, device_list, status, loop):
         print(device_list)
         for d in device_list:
+            print(d)
             async with BleakClient(d.address, loop=loop) as client:
-                x = await client.is_connected()
-                print("Connected: {0}".format(x))
-                y = await client.read_gatt_char(service)
-                # await client.write_gatt_char(service, b'\x00')
+                await client.write_gatt_char(self.service, status)
+                y = await client.read_gatt_char(self.service)
                 print(y)
+            # client = BleakClient(d)
+            # try:
+            #     await client.connect()
+            #     print("ok")
+            #     model_number = await client.read_gatt_char(self.service)
+            #     print("Model Number: {0}".format("".join(map(chr, model_number))))
+            # except Exception as e:
+            #     print(e)
+            # finally:
+            #     await client.disconnect()
 
 
 if __name__ == '__main__':
-    main = main()
+    main = Main()
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(main.scan(loop))
+    loop.run_until_complete(main.scan(loop, b'\x00'))
