@@ -6,7 +6,8 @@ from bleak import BleakScanner
 from bleak import BleakClient
 
 
-class Main:
+def main():
+
     def __init__(self):
         config = configparser.ConfigParser()
         path = os.path.join(os.path.dirname(__file__), '..\config\config.ini')
@@ -17,14 +18,14 @@ class Main:
 
     async def scan(self):
         devices = await BleakScanner.discover(timeout=5.0)
-        device_list = []
+        lhb_devices = []
         for d in devices:
             devices_name = d.name
             print(devices_name)
             if "LHB" in str(devices_name):
-                device_list.append(d)
+                lhb_devices.append(d)
 
-        return device_list
+        return lhb_devices
 
     async def connect(self, device_list, status, loop):
         print(device_list)
@@ -34,16 +35,6 @@ class Main:
                 await client.write_gatt_char(self.service, status)
                 y = await client.read_gatt_char(self.service)
                 print(y)
-            # client = BleakClient(d)
-            # try:
-            #     await client.connect()
-            #     print("ok")
-            #     model_number = await client.read_gatt_char(self.service)
-            #     print("Model Number: {0}".format("".join(map(chr, model_number))))
-            # except Exception as e:
-            #     print(e)
-            # finally:
-            #     await client.disconnect()
 
 
 if __name__ == '__main__':
