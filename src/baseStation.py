@@ -6,12 +6,13 @@ from bleak import BleakClient
 BLE_SERVICE_ID = '00001525-1212-efde-1523-785feabcd124'
 
 
-async def scan():
+async def scan(status):
     devices = await BleakScanner.discover(timeout=5.0)
-    print(len(devices), 'devices found:', devices)
+    print(len(devices), 'devices found:')
     lhb_devices = list(filter(lambda device: 'LHB' in (device.name or ''), devices))
-    print(len(lhb_devices), 'lhb devices found:', lhb_devices)
-    return lhb_devices
+    print(len(lhb_devices), 'lhb devices found:')
+
+    await asyncio.gather(*[send(device, status) for device in lhb_devices])
 
 
 async def send(device, status):
@@ -22,21 +23,3 @@ async def send(device, status):
             print(result)
     except:
         print('send failed:', device)
-
-
-async def main():
-    devices = await scan()
-    while True:
-        print('input on/off/quit', end='> ')
-        a = input()
-        if a == 'on':
-            await asyncio.gather(*[send(device, b'\x01') for device in devices])
-        elif a == 'off':
-            await asyncio.gather(*[send(device, b'\x00') for device in devices])
-        elif a == 'quit':
-            break
-        else:
-            print('invalid input')
-
-
-asyncio.run(main())
